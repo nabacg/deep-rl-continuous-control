@@ -43,13 +43,13 @@ class DdpgAgent():
         self.discount_factor = discount_factor
 
         # Actor-Network
-        self.actor_train = ActorNetwork(state_size, action_size, seed, 64, 128).to(device)
-        self.actor_target = ActorNetwork(state_size, action_size, seed, 64, 128).to(device)
+        self.actor_train = ActorNetwork(state_size, action_size, seed, 128, 256).to(device)
+        self.actor_target = ActorNetwork(state_size, action_size, seed, 128, 256).to(device)
         self.actor_optimizer = optim.Adam(self.actor_train.parameters(), lr=LR_ACTOR)
 
         # Critic Network
-        self.critic_train = CriticNetwork(state_size, action_size, seed, 64, 128)
-        self.critic_target = CriticNetwork(state_size, action_size, seed, 64, 128)
+        self.critic_train = CriticNetwork(state_size, action_size, seed, 400, 300)
+        self.critic_target = CriticNetwork(state_size, action_size, seed, 400, 300)
         self.critic_optimizer = optim.Adam(self.critic_train.parameters(),lr=LR_CRITIC)
 
         self.noise = OUNoise(action_size, self.seed)
@@ -58,6 +58,8 @@ class DdpgAgent():
         # Initialize time step (for updating every UPDATE_EVERY steps)
         self.t_step = 0
         self.loss_track = []
+        self.actor_loss = 100
+        self.critic_loss = 100
 
     def load_model_weights(self, actor_weights, critic_weights):
        
@@ -168,7 +170,9 @@ class DdpgAgent():
         # do Gradient Descent step on Critic train network by minimizing diff between (Q_pred, Q_target)
         self.critic_optimizer.zero_grad()
         critic_loss = F.mse_loss(Q_pred, Q_target)
+        self.critic_loss = critic_loss.item
         critic_loss.backward()
+        torch.nn.utils.clip_grad_norm(self.critic_train.parameters(), 1)
         self.critic_optimizer.step()
 
         #### Actor networ training
@@ -178,7 +182,9 @@ class DdpgAgent():
         # i.e. we want to maximize (minimize the negative) of action state Value function (Q) prediction by critic_train 
         # for current state and next action predicted by actor_train
         actor_loss = -self.critic_train(states, actions_pred).mean()
-
+        self.actor_loss = actor_loss.item
+       
+        # print("Actor_loss={}, critic_loss={}".format(actor_loss.item(), critic_loss.item()))
         # minimize Actor loss
         # do Gradient Descent step on Actor train network
         self.actor_optimizer.zero_grad()
@@ -203,7 +209,29 @@ class DdpgAgent():
         for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
             target_param.data.copy_(tau*local_param.data + (1.0-tau)*target_param.data)
 
+def plot_scores_losses(scores, actor_losses, critic_losses):
+    import matplotlib.pyplot as plt
 
+    # len(agent.losses)
+
+    fig = plt.figure()
+    ax = fig.add_subplot(212)
+    plt.plot(np.arange(len(scores)), scores)
+    plt.ylabel('Score')
+    plt.xlabel('Episode #')
+    plt.show()
+
+    ax2 = fig.add_subplot(122)
+    plt.plot(np.arange(len(actor_losses)), actor_losses)
+    plt.ylabel('Actor Losses')
+    plt.xlabel('Episode #')
+    plt.show()
+
+    ax3 = fig.add_subplot(122)
+    plt.plot(np.arange(len(critic_losses)), critic_losses)
+    plt.ylabel('Critic Losses')
+    plt.xlabel('Episode #')
+    plt.show()
 
 def train_agent(agent, env, output_weights, target_mean_score=13.0, n_episodes = 2000, eps_decay=0.995, eps_end=0.01, input_weights = None):
     eps = 1.0
@@ -214,6 +242,8 @@ def train_agent(agent, env, output_weights, target_mean_score=13.0, n_episodes =
         agent.load_model_weights(input_weights)
     
     scores = []
+    actor_losses = []
+    critic_losses = []
     scores_window = deque(maxlen=100)  # last 100 scores
     for i_episode in range(1,n_episodes+1):
 
@@ -227,8 +257,9 @@ def train_agent(agent, env, output_weights, target_mean_score=13.0, n_episodes =
             next_state = env_info.vector_observations[0]   # get the next state
             reward = env_info.rewards[0]                   # get the reward
             done = env_info.local_done[0]                  # see if episode has finished
-
             agent.step(state, action, reward, next_state, done)
+            actor_losses.append(agent.actor_loss)
+            critic_losses.append(agent.critic_loss)
             score += reward                                # update the score
             state = next_state                             # roll over the state to next time step
 
@@ -240,6 +271,7 @@ def train_agent(agent, env, output_weights, target_mean_score=13.0, n_episodes =
         print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, mean_score), end="")
         if i_episode % 100 == 0:
             print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, mean_score))
+            plot_scores_losses(scores, actor_losses, critic_losses)
         if mean_score >= target_mean_score:
             print("Target mean score of {:.2f} achived at {:.2f} after {} episodes.".format(target_mean_score, mean_score, i_episode))
                 #     print("Score: {}".format(score))
