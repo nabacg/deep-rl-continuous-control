@@ -69,12 +69,12 @@ Then, place the file in the root folder in the Deep-RL-Continuous-Control GitHub
 - Report.md - final report 
 - Training.ipynb - demonstration on how to train agent from scratch, plus results
 - src - python source files
- - ddpg_agent.py contains Agent implementation and couple of helper functions
- - model.py - contains PyTorch Neural Network modules for for Actor and Critic
- - replaybuffers.py - contain Experience Replay and Prioritized Experience Replay helper classes
- - utils.py - contains OUNoise class, plus some helper functions useful for training and testing
- - main.py - delivers easy command line interface into other classes
-- model_weights - folder contains actor and critic pretrained weights
+    - ddpg_agent.py contains Agent implementation and couple of helper functions
+    - model.py - contains PyTorch Neural Network modules for for Actor and Critic
+    - replaybuffers.py - contain Experience Replay and Prioritized Experience Replay helper classes
+    - utils.py - contains OUNoise class, plus some helper functions useful for training and testing
+    - main.py - delivers easy command line interface into other classes
+- model_weights - folder contains actor and critic pre-trained weights
 
 
 ## Jupyter notebooks
