@@ -1,18 +1,18 @@
 import argparse
 import os
-from dqn_agent import Agent, train_agent, test_agent
+import sys
+import numpy as np
+import torch 
+from ddpg_agent import DdpgAgent
+from utils import train_agent, plot_scores_losses
 from unityagents import UnityEnvironment
-
-
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--env_file', default="Banana.app", help="Path to Unity Environment file, allows to change which env is created. Defaults to Banana.app")
+    parser.add_argument('--env_file', default="Reacher.app", help="Path to Unity Environment file, allows to change which env is created. Defaults to Banana.app")
     parser.add_argument('--mode', choices=["train", "test"], default="train", help="Allows switch between training new DQN Agent or test pretrained Agent by loading model weights from file")
     parser.add_argument('--episodes', type=int, default=2000, help="Select how many episodes should training run for. Should be multiple of 100 or mean target score calculation won't make much sense")
-    parser.add_argument('--eps_decay', type=float, default=0.995, help="Epsilon decay parameter value")
-    parser.add_argument('--eps_end', type=float, default=0.995, help="Epsilon end value, after achieving which epsilon decay stops")
     parser.add_argument('--target_score', type=float, default=13.0, help="Target traning score, when mean score over 100 episodes ")
     parser.add_argument('--input_weights', type=str, default=None, help="Path to Q Network model weights to load into DQN Agent before training or testing")
     parser.add_argument('--output_weights', type=str, default="new_qnetwork_model_weights.pth", help="Path to save Q Network model weights after training.")
@@ -23,7 +23,7 @@ if __name__ == "__main__":
     train_mode = args.mode == "train"
     
 
-    env = UnityEnvironment(file_name=args.env_file)
+    env = UnityEnvironment(file_name=args.env_file, no_graphics=True)
     
     brain_name = env.brain_names[0]
     brain = env.brains[brain_name]
