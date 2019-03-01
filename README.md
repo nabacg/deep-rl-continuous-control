@@ -5,12 +5,8 @@ Solution involves implementation of Deep Deterministic Policy Gradient or DDPG a
 
 Implementation using Python 3, PyTorch, Unity ML-Agents.
 
-
-# Demo 
-
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=sITdR22gfPo
-" target="_blank"><img src="https://github.com/nabacg/deep-rl-continuous-control/blob/master/images/reacher-env.gif?raw=true" 
-alt="IMAGE ALT TEXT HERE" width="360" height="240" border="10" /></a>
+## Reacher Envirnoment 
+<img src="https://github.com/nabacg/deep-rl-continuous-control/blob/master/images/reacher-env.gif?raw=true" width="360" height="240" border="10" />
 
 # Getting Started
 Before running the code you'll need to install following python modules
@@ -65,6 +61,8 @@ Then, place the file in the root folder in the Deep-RL-Continuous-Control GitHub
  - replaybuffers.py - contain Experience Replay and Prioritized Experience Replay helper classes
  - utils.py - contains OUNoise class, plus some helper functions useful for training and testing
  - main.py - delivers easy command line interface into other classes
+- model_weights - folder contains actor and critic pretrained weights
+
 
 ## Jupyter notebooks
 In order to train DQN Agent using Jupyter notebooks provided, start jupyter in project folder:
