@@ -83,20 +83,23 @@ class DdpgAgent:
         #checkpointing
         self.checkpoint_dir   = checkpoint_dir
         
-        self.actor_weights = self.checkpoint_dir + "/" + "actor_weights.pth"
-        self.critic_weights = self.checkpoint_dir + "/" + "critic_weights.pth"
+        self.actor_weights = self.checkpoint_dir + "/" + "actor.pth"
+        self.critic_weights = self.checkpoint_dir + "/" + "critic.pth"
         
         
-    def load_checkpoint(self):
-        if os.path.isfile(self.actor_weights) and os.path.isfile(self.critic_weights):
-            self.actor_target.load_state_dict(torch.load(self.actor_weights))
-            self.actor_train.load_state_dict(torch.load(self.actor_weights))
-            self.critic_target.load_state_dict(torch.load(self.critic_weights))
-            self.critic_train.load_state_dict(torch.load(self.critic_weights))
+    def load_checkpoint(self, file_prefix=None):
+        actor_weights =  file_prefix + "_actor.pth"  if file_prefix else self.actor_weights
+        critic_weights = file_prefix + "_critic.pth" if file_prefix else self.critic_weights
+
+        if os.path.isfile(actor_weights) and os.path.isfile(critic_weights):
+            self.actor_target.load_state_dict(torch.load(actor_weights))
+            self.actor_train.load_state_dict(torch.load(actor_weights))
+            self.critic_target.load_state_dict(torch.load(critic_weights))
+            self.critic_train.load_state_dict(torch.load(critic_weights))
             
     def save_checkpoint(self, file_name=None):
-        actor_weights =  file_name + "_actor_weights.pth"  if file_name else self.actor_weights
-        critic_weights = file_name + "_critic_weights.pth" if file_name else self.critic_weights
+        actor_weights =  file_name + "_actor.pth"  if file_name else self.actor_weights
+        critic_weights = file_name + "_critic.pth" if file_name else self.critic_weights
         torch.save(self.actor_train.state_dict(), actor_weights)      
         torch.save(self.critic_train.state_dict(), critic_weights)  
 

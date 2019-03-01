@@ -57,7 +57,7 @@ def plot_scores_losses(scores, mean_scores, actor_losses, critic_losses):
     plt.show()
 
 
-def train_agent(num_agents, agent, env, output_weights, target_mean_score=13.0, n_episodes = 1000, eps_decay=0.99, eps_end=0.01, input_weights = None):
+def train_agent(num_agents, agent, env, file_prefix, target_mean_score=13.0, n_episodes = 1000, eps_decay=0.99, eps_end=0.01, input_weights = None):
     brain_name = env.brain_names[0]
     brain = env.brains[brain_name]
     if input_weights:
@@ -108,7 +108,34 @@ def train_agent(num_agents, agent, env, output_weights, target_mean_score=13.0, 
         if mean_score >= target_mean_score:
             print("Target mean score of {:.2f} achived at {:.2f} after {} episodes.".format(target_mean_score, mean_score, i_episode))
                 #     print("Score: {}".format(score))
-            agent.save_checkpoint(path=output_weights)
+            agent.save_checkpoint(file_name=file_prefix)
             
             break
+    return scores
+
+def test_agent(agent, env, weight_file_prefix, n_episodes):
+    brain_name = env.brain_names[0]
+    agent.load_checkpoint(weight_file_prefix)
+
+    scores = [] 
+    for i_episode in range(1,n_episodes+1):
+
+        env_info = env.reset(train_mode=False)[brain_name]   # reset the environment
+        states = env_info.vector_observations                # get the current state
+        score = 0                                           # initialize the score
+        done = False                                                                                   
+        while not(done):                                 # exit loop if episode finished
+            actions =  agent.act(states)                 # select an action
+            # print(actions, actions.shape)
+            env_info = env.step(actions)[brain_name]      # send the action to the environment
+            next_states = env_info.vector_observations   # get the next state
+            rewards = env_info.rewards                   # get the reward
+            dones = env_info.local_done                  # see if episode has finished
+            agent.step(states, actions, rewards, next_states, dones) 
+
+            score += np.mean(rewards)                           # update the score
+            states = next_states                             # roll over the state to next time step
+            done = np.any(dones)                          # roll over the state to next time step
+        scores.append(score)
+        print('\rEpisode {}\ Score: {:.2f}'.format(i_episode, score))
     return scores
