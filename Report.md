@@ -11,13 +11,13 @@ Graph shows accumulated rewards per episode, averaged over 20 agents
 
 ### Mean Rewards 
 Graph shows accumulated rewards per episode, averaged over 100 episode window and over 20 agents
-![Plot of agent mean scores in 100 episode window ](https://github.com/nabacg/deep-rl-continuous-control/blob/master/images/mean_score_solution.png?raw=true))
+![Plot of agent mean scores in 100 episode window ](https://github.com/nabacg/deep-rl-continuous-control/blob/master/images/mean_score_solution.png?raw=true)
 
 ### Actor Loss function
-![Plot of Actor network loss function](https://github.com/nabacg/deep-rl-continuous-control/blob/master/images/actor_loss.png?raw=true))
+![Plot of Actor network loss function](https://github.com/nabacg/deep-rl-continuous-control/blob/master/images/actor_loss.png?raw=true)
 
 ### Critic Loss function
-![Plot of Critic network loss function](https://github.com/nabacg/deep-rl-continuous-control/blob/master/images/critic_loss.png?raw=true))
+![Plot of Critic network loss function](https://github.com/nabacg/deep-rl-continuous-control/blob/master/images/critic_loss.png?raw=true)
 
 
 ## Learning Algorithm 

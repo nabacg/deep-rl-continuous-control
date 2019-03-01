@@ -17,6 +17,11 @@ Implementation using Python 3, PyTorch, Unity ML-Agents.
 - Action space: (Continuous) Size of 4, corresponding to torque applicable to two joints.
 - Benchmark Mean Reward: 30
 
+## Solution 
+Deep Reinforcement Learning agent implementing presented here solves this environment in 130 episodes, details presented in 
+ - [Report](Report.ipynb) - for discussion on results
+ - [Training](Training.ipynb) - for details on training and how to use this code
+
 # Getting Started
 Before running the code you'll need to install following python modules
 
