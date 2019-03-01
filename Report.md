@@ -1,18 +1,19 @@
 # Report
 
-
+# Results
 ## Plot of Rewards
 
-Plot from [Training](Training.ipynb) showing scores (total reword per episode) on agent trained from scratch until average score over 20 agents for 100 episode window reached 30.0 . This was achived after 130 episodes, more details in Training notebook.
+Below graphs show solution to version 2 of the environment with 20 agents, scores   Plot from [Training](Training.ipynb) showing scores (total reword per episode) on agent trained from scratch until average score over 20 agents for 100 episode window reached 30.0 . This was achived after 130 episodes, more details in Training notebook.
 
-### Scores 
+### Rewards per episode 
+Graph shows accumulated rewards per episode, averaged over 20 agents
 ![Plot of agent scores by episode](https://github.com/nabacg/deep-rl-continuous-control/blob/master/images/score_solution.png?raw=true)
 
-### Mean Scores over 100 episode window
+### Mean Rewards 
+Graph shows accumulated rewards per episode, averaged over 100 episode window and over 20 agents
 ![Plot of agent mean scores in 100 episode window ](https://github.com/nabacg/deep-rl-continuous-control/blob/master/images/mean_score_solution.png?raw=true))
 
 ### Actor Loss function
-
 ![Plot of Actor network loss function](https://github.com/nabacg/deep-rl-continuous-control/blob/master/images/actor_loss.png?raw=true))
 
 ### Critic Loss function

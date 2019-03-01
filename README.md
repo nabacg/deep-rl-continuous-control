@@ -5,8 +5,20 @@ Solution involves implementation of Deep Deterministic Policy Gradient or DDPG a
 
 Implementation using Python 3, PyTorch, Unity ML-Agents.
 
-## Reacher Envirnoment 
+## Reacher environment 
 <img src="https://github.com/nabacg/deep-rl-continuous-control/blob/master/images/reacher-env.gif?raw=true" width="360" height="240" border="10" />
+
+Set-up: Double-jointed arm which can move to target locations.
+Goal: The agents must move its hand to the goal location, and keep it there.
+Agents: The environment contains 10 agent linked to a single Brain.
+Agent Reward Function (independent):
++0.1 Each step agent's hand is in goal location.
+Brains: One Brain with the following observation/action space.
+Vector Observation space: 33 variables corresponding to position, rotation, velocity, and angular velocities of the two arm Rigidbodies.
+Vector Action space: (Continuous) Size of 4, corresponding to torque applicable to two joints.
+Visual Observations: None.
+Reset Parameters: Two, corresponding to goal size, and goal movement speed.
+Benchmark Mean Reward: 30
 
 # Getting Started
 Before running the code you'll need to install following python modules
@@ -75,6 +87,9 @@ jupyter notebook
 then once Jupyter UI opens in your browser ([the default URL](http://localhost:8888/tree/) ),  open [Training notebook](Training.ipynb). 
 
 If you'd rather view results or experiment with already trained agent open [Report notebook](Report.ipynb) instead.
+
+### Training and testing RL Agent
+[Training](Training.ipynb) demonstrates a process of training reinforcement learning agent from scratch to solving the environment and it's probably a best place to start.
 
 ## Command Line
 
