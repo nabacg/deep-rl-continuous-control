@@ -133,24 +133,39 @@ class DdpgAgent:
         states, actions, rewards, next_states, dones = experiences
         
        
-        # Critic training
+        ## DDPG  implementation 
+        #### Critic network training
+
+        # Calculate Q_Targets
+        # first use target Actor to predict best next actions for next states S'
         target_actions_pred = self.actor_target(next_states)
+        # Then use target critic to asses Q value of this (S', pred_action) tuple
         target_pred = self.critic_target(next_states, target_actions_pred)
+        # calculate the Q_target using TD error formula   
         Q_target = rewards + (self.gamma * target_pred * (1 - dones))
         
+        # find what Q value does Critic train network assign to this (state, action) - current state, actual action performed        
         Q_pred = self.critic_train(states, actions)
         
+        # Minimize critic loss
+        # do Gradient Descent step on Critic train network by minimizing diff between (Q_pred, Q_target)
         self.critic_optimizer.zero_grad()
         critic_loss = F.mse_loss(Q_pred, Q_target)
         self.critic_loss = critic_loss.data
         critic_loss.backward()
         self.critic_optimizer.step()
         
-        # Actor training 
+        #### Actor network training
+        # find wich action does Actor train predict
         actions_pred = self.actor_train(states)
+        # Loss is negative of Critic_train Q estimate of (S,  actions_pred)
+        # i.e. we want to maximize (minimize the negative) of action state Value function (Q) prediction by critic_train 
+        # for current state and next action predicted by actor_train
         actor_loss = -self.critic_train(states, actions_pred).mean()
-        self.actor_loss = actor_loss.data
         
+        self.actor_loss = actor_loss.data
+        # minimize Actor loss
+        # do Gradient Descent step on Actor train network
         self.actor_optimizer.zero_grad()
         actor_loss.backward()
         self.actor_optimizer.step()
