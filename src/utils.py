@@ -57,7 +57,9 @@ def plot_scores_losses(scores, mean_scores, actor_losses, critic_losses):
     plt.show()
 
 
-def train_agent(num_agents, agent, env, file_prefix, target_mean_score=13.0, n_episodes = 1000, eps_decay=0.99, eps_end=0.01, input_weights = None):
+def train_agent(num_agents, agent, env, file_prefix, print_metrics_every=10,
+        target_mean_score=13.0, n_episodes = 1000, eps_decay=0.99, 
+        eps_end=0.01, input_weights = None, score_aggregate = np.mean):
     brain_name = env.brain_names[0]
     brain = env.brains[brain_name]
     if input_weights:
@@ -77,7 +79,7 @@ def train_agent(num_agents, agent, env, file_prefix, target_mean_score=13.0, n_e
 
         env_info = env.reset(train_mode=True)[brain_name]   # reset the environment
         states = env_info.vector_observations               # get the current state
-        score = 0                                           # initialize the score
+        score = np.zeros(num_agents)                                           # initialize the score
         done = False                                          
         while not(done):                                 # exit loop if episode finished
             actions =  agent.act(states, add_noise=True)                 # select an action
@@ -90,10 +92,11 @@ def train_agent(num_agents, agent, env, file_prefix, target_mean_score=13.0, n_e
                     
             actor_losses.append(agent.actor_loss)
             critic_losses.append(agent.critic_loss)
-            score += np.mean(rewards)                           # update the score
+            score += rewards                              # update the score
             states = next_states                             # roll over the state to next time step
             done = np.any(dones)
-
+        
+        score = score_aggregate(score)
         scores_window.append(score)
         scores.append(score)
 
@@ -102,7 +105,7 @@ def train_agent(num_agents, agent, env, file_prefix, target_mean_score=13.0, n_e
         mean_scores.append(mean_score)
         print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, mean_score, eps), end="")
         agent.save_checkpoint()
-        if i_episode % 10 == 0:
+        if i_episode % print_metrics_every == 0:
             print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, mean_score))
             plot_scores_losses(scores, mean_scores, actor_losses, critic_losses)
         if mean_score >= target_mean_score:
