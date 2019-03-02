@@ -19,6 +19,8 @@ class DdpgAgent:
                  weight_decay,
                  tau,
                  update_every, gamma, device, 
+                 hidden_1_size = 256,
+                 hidden_2_size = 128,
                  checkpoint_dir="."):
         """Initialize an Agent object.
 
@@ -54,8 +56,7 @@ class DdpgAgent:
         
         # NN models for 
 #         network size 
-        hidden_1_size = 256
-        hidden_2_size = 128
+        
         
         # Critic 
         self.critic_train     = CriticQNetwork(state_size, action_size, seed, hidden_1_size, hidden_2_size).to(device)
