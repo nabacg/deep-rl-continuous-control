@@ -46,7 +46,7 @@ class DdpgAgent:
         self.batch_size = batch_size
         self.buffer_size = buffer_size
         self.tau = tau
-        
+        self.action_size = action_size
         
         
         self.update_every = update_every
@@ -55,8 +55,7 @@ class DdpgAgent:
        
         
         # NN models for 
-#         network size 
-        
+        # network size 
         
         # Critic 
         self.critic_train     = CriticQNetwork(state_size, action_size, seed, hidden_1_size, hidden_2_size).to(device)
@@ -68,7 +67,7 @@ class DdpgAgent:
         self.actor_optimizer  = optim.Adam(self.actor_train.parameters(), lr=actor_lr)
         
         # init Noise process
-        self.noise = OUNoise((num_agents, action_size), seed)
+        self.noise = OUNoise((num_agents, action_size), seed,  theta=0.15, sigma=0.2)
         
         # init Replay Buffer
         self.memory = ReplayBuffer(action_size= action_size, 
@@ -104,7 +103,7 @@ class DdpgAgent:
         torch.save(self.actor_train.state_dict(), actor_weights)      
         torch.save(self.critic_train.state_dict(), critic_weights)  
 
-    def act(self, states, add_noise = True):
+    def act(self, states, add_noise = True, noise_decay=1.0):
         states = torch.from_numpy(states).float().to(self.device)
         self.actor_train.eval()
         with torch.no_grad():
@@ -112,11 +111,12 @@ class DdpgAgent:
         self.actor_train.train()
         
         if add_noise:
-            actions += self.noise.sample()
+            actions += self.noise.sample()*noise_decay
         return np.clip(actions, -1, 1)
     
     def step(self, states, actions, rewards, next_states, dones):
-        [self.memory.add(s, a, r, s_next, d) for (s, a, r, s_next, d) 
+        [self.memory.add(s, a, r, s_next, d) 
+            for (s, a, r, s_next, d) 
                 in zip(states, actions, rewards, next_states, dones)]
         
         self.step_counter += 1

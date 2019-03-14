@@ -58,7 +58,7 @@ def plot_scores_losses(scores, mean_scores, actor_losses, critic_losses):
 
 
 def train_agent(num_agents, agent, env, file_prefix, print_metrics_every=10,
-        target_mean_score=13.0, n_episodes = 1000, eps_decay=0.99, 
+        target_mean_score=13.0, n_episodes = 1000, eps_decay=0.999, 
         eps_end=0.01, input_weights = None, score_aggregate = np.mean):
     brain_name = env.brain_names[0]
     brain = env.brains[brain_name]
@@ -71,8 +71,10 @@ def train_agent(num_agents, agent, env, file_prefix, print_metrics_every=10,
     actor_losses = []
     critic_losses = []
     eps = 0.9
-    # actor_losses_window = deque(maxlen=100)
-    # critic_losses_window = deque(maxlen=100)
+    max_score = 0
+    step_counter = 0
+    # ToDo save weights for the model with best score so far
+
     scores_window = deque(maxlen=100)  # last 100 scores
     for i_episode in range(1,n_episodes+1):
         # print("Episonde {} start".format(i_episode), end="")
@@ -82,7 +84,10 @@ def train_agent(num_agents, agent, env, file_prefix, print_metrics_every=10,
         score = np.zeros(num_agents)                                           # initialize the score
         done = False                                          
         while not(done):                                 # exit loop if episode finished
-            actions =  agent.act(states, add_noise=True)                 # select an action
+            if i_episode < 0.1*n_episodes:
+                actions = np.random.standard_normal((num_agents,  agent.action_size))
+            else:
+                actions =  agent.act(states, add_noise=True, noise_decay=eps)                 # select an action
             # print(actions, actions.shape)
             env_info = env.step(actions)[brain_name]      # send the action to the environment
             next_states = env_info.vector_observations   # get the next state
@@ -95,15 +100,17 @@ def train_agent(num_agents, agent, env, file_prefix, print_metrics_every=10,
             score += rewards                              # update the score
             states = next_states                             # roll over the state to next time step
             done = np.any(dones)
+            step_counter += 1
         
         score = score_aggregate(score)
         scores_window.append(score)
         scores.append(score)
 
-        eps = max(eps_end, eps_decay*eps)
+        if step_counter % 10 ==0:
+            eps = max(eps_end, eps_decay*eps)
         mean_score = np.mean(scores_window)
         mean_scores.append(mean_score)
-        print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, mean_score, eps), end="")
+        print('\rEpisode {}\tAverage Score: {:.2f}\tEpsilon:: {:.4f}'.format(i_episode, mean_score, eps), end="")
         agent.save_checkpoint()
         if i_episode % print_metrics_every == 0:
             print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, mean_score))
