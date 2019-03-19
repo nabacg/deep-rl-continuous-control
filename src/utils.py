@@ -58,8 +58,9 @@ def plot_scores_losses(scores, mean_scores, actor_losses, critic_losses):
 
 
 def train_agent(num_agents, agent, env, file_prefix, print_metrics_every=10,
-        target_mean_score=13.0, n_episodes = 1000, eps_decay=0.999, 
-        eps_end=0.01, input_weights = None, score_aggregate = np.mean):
+        target_mean_score=13.0, n_episodes = 1000, eps = 0.9, eps_decay=0.999, 
+        eps_end=0.01, input_weights = None, score_aggregate = np.mean, 
+        start_random_exp=True):
     brain_name = env.brain_names[0]
     brain = env.brains[brain_name]
     if input_weights:
@@ -70,8 +71,9 @@ def train_agent(num_agents, agent, env, file_prefix, print_metrics_every=10,
     mean_scores = []
     actor_losses = []
     critic_losses = []
-    eps = 0.9
-    max_score = 0
+    
+    best_mean_score = 0
+    
     step_counter = 0
     # ToDo save weights for the model with best score so far
 
@@ -84,7 +86,7 @@ def train_agent(num_agents, agent, env, file_prefix, print_metrics_every=10,
         score = np.zeros(num_agents)                                           # initialize the score
         done = False                                          
         while not(done):                                 # exit loop if episode finished
-            if i_episode < 0.1*n_episodes:
+            if start_random_exp == True and i_episode < 0.05*n_episodes:
                 actions = np.random.standard_normal((num_agents,  agent.action_size))
             else:
                 actions =  agent.act(states, add_noise=True, noise_decay=eps)                 # select an action
@@ -101,17 +103,27 @@ def train_agent(num_agents, agent, env, file_prefix, print_metrics_every=10,
             states = next_states                             # roll over the state to next time step
             done = np.any(dones)
             step_counter += 1
+            
+            if step_counter % 10 ==0:
+                eps = max(eps_end, eps_decay*eps)
         
         score = score_aggregate(score)
         scores_window.append(score)
         scores.append(score)
 
-        if step_counter % 10 ==0:
-            eps = max(eps_end, eps_decay*eps)
+
         mean_score = np.mean(scores_window)
         mean_scores.append(mean_score)
-        print('\rEpisode {}\tAverage Score: {:.2f}\tEpsilon:: {:.4f}'.format(i_episode, mean_score, eps), end="")
+        print('\rEpisode {}\tAverage Score: {:.2f}\tEpsilon: {:.4f}'.format(i_episode, mean_score, eps), end="")
         agent.save_checkpoint()
+
+        if mean_score > best_mean_score:
+            best_mean_score = mean_score
+            agent.save_checkpoint("{}_BEST".format(file_prefix, best_mean_score))
+            with open('best_mean_score.txt', 'w') as best_score_file:
+                best_score_file.write('''Best mean score:{:.4f}\n
+                                         Episode:{}\n
+                                         '''.format(best_mean_score, i_episode))
         if i_episode % print_metrics_every == 0:
             print('\rEpisode {}\tAverage Score: {:.2f}'.format(i_episode, mean_score))
             plot_scores_losses(scores, mean_scores, actor_losses, critic_losses)
@@ -119,7 +131,7 @@ def train_agent(num_agents, agent, env, file_prefix, print_metrics_every=10,
             print("Target mean score of {:.2f} achived at {:.2f} after {} episodes.".format(target_mean_score, mean_score, i_episode))
                 #     print("Score: {}".format(score))
             agent.save_checkpoint(file_name=file_prefix)
-            
+            plot_scores_losses(scores, mean_scores, actor_losses, critic_losses)
             break
     return scores
 

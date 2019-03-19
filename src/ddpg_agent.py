@@ -139,21 +139,23 @@ class DdpgAgent:
 
         # Calculate Q_Targets
         # first use target Actor to predict best next actions for next states S'
-        target_actions_pred = self.actor_target(next_states)
+        with torch.no_grad():
+            target_actions_pred = self.actor_target(next_states).to(self.device)
         # Then use target critic to asses Q value of this (S', pred_action) tuple
         target_pred = self.critic_target(next_states, target_actions_pred)
         # calculate the Q_target using TD error formula   
         Q_target = rewards + (self.gamma * target_pred * (1 - dones))
         
         # find what Q value does Critic train network assign to this (state, action) - current state, actual action performed        
-        Q_pred = self.critic_train(states, actions)
+        Q_pred = self.critic_train(states, actions).to(self.device)
         
         # Minimize critic loss
         # do Gradient Descent step on Critic train network by minimizing diff between (Q_pred, Q_target)
         self.critic_optimizer.zero_grad()
-        critic_loss = F.mse_loss(Q_pred, Q_target)
-        self.critic_loss = critic_loss.data
+        critic_loss = F.smooth_l1_loss(Q_pred, Q_target.detach())
+        self.critic_loss = critic_loss.cpu().detach().item()
         critic_loss.backward()
+        torch.nn.utils.clip_grad_norm_(self.critic_train.parameters(), 1)
         self.critic_optimizer.step()
         
         #### Actor network training
@@ -164,7 +166,7 @@ class DdpgAgent:
         # for current state and next action predicted by actor_train
         actor_loss = -self.critic_train(states, actions_pred).mean()
         
-        self.actor_loss = actor_loss.data
+        self.actor_loss = actor_loss.cpu().detach().item()
         # minimize Actor loss
         # do Gradient Descent step on Actor train network
         self.actor_optimizer.zero_grad()
